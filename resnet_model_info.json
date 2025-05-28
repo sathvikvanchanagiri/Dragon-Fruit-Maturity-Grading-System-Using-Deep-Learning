@@ -1,0 +1,23 @@
+{
+    "class_names": [
+        "Defect Dragon Fruit",
+        "Immature Dragon Fruit",
+        "Mature Dragon Fruit"
+    ],
+    "confidence_threshold": 0.7,
+    "training_parameters": {
+        "img_size": 224,
+        "batch_size": 32,
+        "epochs": 6,
+        "dropout_rate": 0.7,
+        "l2_lambda": 0.003,
+        "initial_learning_rate": 0.0001,
+        "decay_steps": 1000,
+        "decay_rate": 0.95,
+        "class_weights": {
+            "0": 0.89,
+            "1": 0.89,
+            "2": 1.328358208955224
+        }
+    }
+}
