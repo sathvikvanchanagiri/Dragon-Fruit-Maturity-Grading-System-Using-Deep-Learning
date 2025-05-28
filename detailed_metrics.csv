@@ -1,0 +1,4 @@
+Class,TP,TN,FP,FN,Accuracy,Precision,Recall,F1 Score,Specificity,Learning Rate
+Defect Dragon Fruit,557,1002,0,43,0.9732,1.0000,0.9283,0.9628,1.0000,0.0005
+Immature Dragon Fruit,600,1002,0,0,1.0000,1.0000,1.0000,1.0000,1.0000,0.0005
+Mature Dragon Fruit,402,1157,43,0,0.9732,0.9034,1.0000,0.9492,0.9642,0.0005
