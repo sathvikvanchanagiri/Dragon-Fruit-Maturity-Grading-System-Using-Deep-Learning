@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DragonAI | Fruit Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .neon-shadow {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen p-6 md:p-10">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">
+                Dragon<span class="text-purple-200">AI</span>
+            </h1>
+            <p class="text-purple-100 text-lg">Intelligent Dragon Fruit Analysis</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Upload Section -->
+            <div class="glass-effect rounded-2xl p-6 neon-shadow">
+                <h2 class="text-xl font-semibold mb-6 text-white">Upload Image</h2>
+                <div class="relative">
+                    <div class="upload-zone p-8 text-center cursor-pointer border-2 border-dashed border-purple-200 rounded-xl hover:bg-purple-50/10 transition-colors"
+                        id="upload-zone">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                        <p class="text-purple-100 mb-4">Drag & drop your image here</p>
+                        <button class="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition-colors"
+                            id="upload-btn">
+                            Choose File
+                        </button>
+                    </div>
+                    <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        id="file-input" accept="image/*">
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="glass-effect rounded-2xl p-6 neon-shadow hidden" id="preview-container">
+                <h2 class="text-xl font-semibold mb-6 text-white">Image Preview</h2>
+                <div class="relative rounded-xl overflow-hidden">
+                    <img id="preview-image" class="w-full h-auto" alt="Preview">
+                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <button id="analyze-btn" class="bg-white text-purple-600 px-6 py-3 rounded-full font-medium hover:bg-purple-50 transition-all">
+                            Analyze Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="glass-effect rounded-2xl p-6 mt-8 neon-shadow hidden" id="results-container">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-white">Analysis Results</h2>
+                <span id="timestamp" class="text-purple-200 text-sm"></span>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-purple-50/10 rounded-xl p-4">
+                    <p class="text-purple-200 text-sm mb-2">CLASSIFICATION</p>
+                    <div class="flex items-center">
+                        <span id="result-badge" class="bg-purple-600 text-white px-4 py-1 rounded-full text-sm mr-3">Processing...</span>
+                        <span id="result-text" class="text-xl font-semibold text-white">Analyzing...</span>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50/10 rounded-xl p-4">
+                    <p class="text-purple-200 text-sm mb-2">CONFIDENCE SCORE</p>
+                    <div id="confidence-score" class="text-xl font-semibold text-white">0%</div>
+                </div>
+            </div>
+
+            <div id="detailed-results" class="space-y-4">
+                <!-- Results will be populated here -->
+            </div>
+
+            <div class="mt-8 text-center">
+                <button id="new-analysis-btn" class="bg-purple-600 text-white px-8 py-3 rounded-full hover:bg-purple-700 transition-colors">
+                    Analyze Another Image
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImage = document.getElementById('preview-image');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const newAnalysisBtn = document.getElementById('new-analysis-btn');
+
+        // File Input Change Handler
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            handleFile(file);
+        }
+
+        function handleFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                    previewContainer.classList.add('fade-in');
+                    resultsContainer.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select an image file');
+            }
+        }
+
+        // Analyze Button Handler
+        analyzeBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select an image first');
+                return;
+            }
+
+            // Show loading state
+            analyzeBtn.innerHTML = '<div class="loading-spinner"></div>';
+            analyzeBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('http://localhost:8000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during analysis. Please try again.');
+            } finally {
+                analyzeBtn.innerHTML = 'Analyze Image';
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            // Update timestamp
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+            // Update main results
+            const resultBadge = document.getElementById('result-badge');
+            const resultText = document.getElementById('result-text');
+            const confidenceScore = document.getElementById('confidence-score');
+
+            // Set badge class and text
+            resultBadge.className = `bg-purple-600 text-white px-4 py-1 rounded-full text-sm mr-3`;
+            resultBadge.textContent = data.class;
+            resultText.textContent = data.display_name;
+            confidenceScore.textContent = `${(data.confidence * 100).toFixed(1)}%`;
+
+            // Update detailed results
+            const detailedResults = document.getElementById('detailed-results');
+            detailedResults.innerHTML = '';
+
+            Object.entries(data.predictions).forEach(([className, confidence]) => {
+                const percentage = (confidence * 100).toFixed(1);
+                const bar = document.createElement('div');
+                bar.className = 'mb-4';
+                bar.innerHTML = `
+                    <div class="flex justify-between mb-2">
+                        <span class="text-purple-200 font-medium">${className}</span>
+                        <span class="text-purple-100">${percentage}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-value" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                detailedResults.appendChild(bar);
+            });
+
+            // Show results container
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.classList.add('fade-in');
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // New Analysis Button Handler
+        newAnalysisBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            previewContainer.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
